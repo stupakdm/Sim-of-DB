@@ -20,18 +20,26 @@ int parse_string(char *str){
 	comm.num_args = 0;
 
 	comm_args = 0;
-
+	comm.args = NULL;
 	len = strlen(str);
 	k=0;
-	printf("okay1\n");
+	//printf("okay1\n");
+	//Задаём аргументы с самого начала и очистим в конце
+	comm.args = NULL;
+	comm.args = (char**)malloc(sizeof(char*));
+	if (comm.args == NULL)
+	{
+		printf("Malloc Error: terminal.h\n");
+		return -1;
+	}
+	comm.args[comm.num_args] = NULL;
 	
-		
 	flag = 0;
 	for (i=0;i<=len;i++) {
 		if (str[i] == '\0') {
 			if (strlen(word) >0) {
 				flag = 2;
-				printf("okay2\n");
+				//printf("okay2\n");
 				goto add_new_word;
 				}
 				
@@ -49,68 +57,50 @@ int parse_string(char *str){
 			if (str[i] == ' ' | str[i] == '\t') {
 add_new_word:
 				word[k] = '\0';
-				if (comm_args ==0) {
-					comm.name = word;
-					comm.num_args = comm_args;
-					comm_args+=1;
-					//printf("%s\n", comm.name);
-					/*word1 = (char*)malloc(sizeof(char));
-					if (word1 == NULL) {
-						printf("Malloc error: terminal.h\n");
-						return -1;
-					}
-					k= 0;
-					word = word1;*/
+				if (comm.num_args ==0) {
+					//printf("okay2\n");
+					comm.args[comm.num_args] = (char*)malloc(sizeof(char)*strlen(word));
+					//strcpy(comm.args[comm.num_args], word);
+					comm.args[comm.num_args] = word;
+					
+					//printf("args[0]:%s\n", comm.args[comm.num_args]);
+					//printf("okay3\n");
 				}
 				else {
-					if (comm.num_args ==0) {
-						comm.args = (char**)malloc(sizeof(char*));
-						if (comm.args == NULL)
-						{
-							printf("Malloc Error: terminal.h\n");
-							return -1;
-						}
-						comm.args[comm.num_args] = word;
-					}
-					else {
 					
-						comm.args = (char**)realloc(comm.args, comm.num_args*sizeof(char*));
-						if (comm.args == NULL)
-						{
-							printf("Malloc Error: terminal.h\n");
-							return -1;
-						}
-						comm.args[comm.num_args] = word;
-					}
-					
-					//printf("ok2.1\n");
-					//printf("args %d - %s\n", comm.num_args, comm.args[comm.num_args]);
-					comm.num_args +=1;
-					//printf("args %d - %s\n", comm.num_args, comm.args[0]);
-					/*word1 = (char*)malloc(sizeof(char));
-					if (word1 == NULL) {
-						printf("Malloc error: terminal.h\n");
+					comm.args = (char**)realloc(comm.args, (comm.num_args+1)*sizeof(char*));
+					if (comm.args == NULL)
+					{
+						printf("Malloc Error: terminal.h\n");
 						return -1;
 					}
-					k= 0;
-					word = word1;*/
-					//comm_args +=1;
+					comm.args[comm.num_args] = (char*)malloc(sizeof(char)*(strlen(word));
+					//strcpy(comm.args[comm.num_args], word);
+					comm.args[comm.num_args] = word;
 				}
-				//word = NULL;
-				word1 = NULL;
+					
+
+				comm.num_args +=1;
+
+			
+
+				//word1 = NULL;
 				word1 = (char*)malloc(sizeof(char));
 				if (word1 == NULL) {
 					printf("Malloc error: terminal.h\n");
 					return -1;
 				}
-				
+				//printf("args[0]:%s\n", comm.args[comm.num_args-1]);	
 				if(flag==2)
 					break;
 				k= 0;
 				word = word1;
 				flag = 0;
+				//printf("args[0]:%s\n", comm.args[comm.num_args-1]);	
 			}
 			else {
+				//printf("okay4\n");
+			
 				word1 = (char*)realloc(word, k+1);
 				if (word1 == NULL) {
 					printf("Realloc error: terminal.h\n");
@@ -122,25 +112,34 @@ add_new_word:
 				//printf("%s\n", word);
 			}
 		}
+		
 	}
-	if (comm_args==0)
+	/*if (comm_args==0)
 	{
-		free(comm.name);
+		//free(comm.name);
 		free(comm.args[0]);
 		free(comm.args);
-	}
+	}*/
 
 	
 	err = check_command(comm);
 	
 	free(word1);
-	
-	if (comm_args!=0) {
-		free(comm.name);
-		for (i=0;i<comm.num_args;i++) 
+	printf("%d\n", comm.num_args);
+	//if (comm_args!=0) {
+		//free(comm.name);
+	//if (comm.num_args)
+	for (i=0;i<comm.num_args;i++)
+	{	
+		printf("%s\n", comm.args[i]);
+	} 
+	//free(comm.args[i]);
+	for (i=0;i<comm.num_args;i++) {
+		{	
 			free(comm.args[i]);
-		//free(comm.args);
+		}
 	}
+	free(comm.args);
 	
 	switch (err) {
 		case -1:
@@ -167,21 +166,24 @@ add_new_word:
 				
 int terminal() {
 	char a;
-	char *str = NULL;
-	char *str1;
+	char *str;
+	char *str1 = NULL;
 	int n =0;
 	int err;
 	str1 = (char*)malloc(sizeof(char));
 	str = str1;
+	//str[n] = '\0';
 	printf("> ");
+	a = getchar();
 	while (1) {
-		a = getchar();
-		str1 = (char*)realloc(str,n+1);
+		//a = getchar();
+		//str[n]= a;
+		/*str1 = (char*)realloc(str,n+1);
 		if (str1 == NULL) {
 			printf("Realloc Error: terminal.h\n");
 			return -1;
 		}
-		str = str1;  
+		str = str1;  */
 		if (a == '\n') {
 			str[n] = '\0';
 			printf("%s\n", str);
@@ -196,7 +198,9 @@ int terminal() {
 			}
 			printf("> ");
 			n = 0;
-			str1 = NULL;
+			free(str1);
+			//str1 = NULL;
+			//str = str1;
 			//str1 = (char*)realloc(str, n*(sizeof(char)));
 			str1 = (char*)malloc(sizeof(char));
 			if (str1 == NULL) {
@@ -204,12 +208,26 @@ int terminal() {
 				return -1;
 			}
 			str = str1;
-			continue;
+			//str[n] = '\0';
+			a = getchar();
 		}
 		else {
+			
 			str[n] = a;
+			a = getchar();
+			n++;
+			if (a == '\n')
+				continue; 
+			str1 = (char*)realloc(str,n+1);
+			if (str1 == NULL) {
+				printf("Realloc Error: terminal.h\n");
+				return -1;
+			}
+			str = str1; 
+			//n+=1;
 		}
-		n+=1;
+		//n+=1;
+		
 	}
 	
 	
