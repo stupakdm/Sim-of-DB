@@ -25,15 +25,15 @@ int exec_command(int num_of_comm, char* args[])
 			}
 			else if (pid== 0) // child
 			{
-				execvp("ls", args);
-				printf("I am gone\n");
+				execvp(args[0], args);
+				//printf("I am gone\n");
 			}
 			else { 		// parent
 				wait(0);
-				printf("It is parent\n");
+				//printf("It is parent\n");
 			}
 			
-			printf("ls\n");
+			//printf("ls\n");
 			break;
 			//execlp("ls","ls", args, NULL);
 			//execvp("ls", arg_ls);

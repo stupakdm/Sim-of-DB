@@ -5,7 +5,6 @@
 
 struct command {
 //typedef type_command {
-	char *name;
 	char **args;
 	int num_args;
 };

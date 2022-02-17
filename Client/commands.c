@@ -15,7 +15,12 @@ int num_comms;
 */
 int check_args(int num, struct command comm, int num_of_comm) {
 	int err;
-	if (comm.num_args == num) {
+	if (num_of_comm==2) {
+		comm.args[comm.num_args] = NULL;
+		err = exec_command(num_of_comm, comm.args);
+		return err;
+	}
+	if (comm.num_args-1 == num) {
 		err = exec_command(num_of_comm, comm.args);
 		if (err == 5)
 			return 5;
@@ -36,9 +41,9 @@ int check_command(struct command comm) {
 	int all_comms=4;
 
 
-
+	//printf("command: %s\n", comm.args[0]);
 	for (i=0;i<all_comms;i++) {
-		if (strcmp(comm.name, commands[i]) == 0) {
+		if (strcmp(comm.args[0], commands[i]) == 0) {
 			switch (i) {
 				case 0:
 					err = check_args(0, comm, i);
@@ -48,7 +53,7 @@ int check_command(struct command comm) {
 					break;
 
 				case 2:
-					err = check_args(2, comm, i);
+					err = check_args(0, comm, i);
 					break;
 
 				case 3:
