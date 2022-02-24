@@ -1,0 +1,14 @@
+user:Dima;
+password:123;
+user:dima;
+password:alex;
+user:alex;
+password:alex;
+user:paul;
+password:1234;
+user:jake;
+password:1234tre;
+user:oleg;
+password:4567;
+user:vasya;
+password:124567;
