@@ -24,6 +24,7 @@ struct command {
 
 struct used_comm {
     int current;
+    int x;
      vector<string> commands;
 };
 
@@ -34,11 +35,14 @@ private:
     vector<command> commands;
     command comm;
     string s;
+    string one_side, two_side;
     int parse_string(string s);
 
     int parse_symb(int symb);
 
     int getch(void);
+
+    void print(void);
 public:
     Terminal();
 
