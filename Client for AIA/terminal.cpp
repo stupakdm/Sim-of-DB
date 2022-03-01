@@ -1,13 +1,22 @@
 #include "terminal.h"
+#include <signal.h>
 using namespace std;
 
+//static volatile int keepRunning = 1;
 //struct termios orig_mode;
 
 //void disableRawMode();
 //void enableRawMode();
 
+//void intHandler(int dummy)
+//{
+//    keepRunning = 0;
+
+//}
+
 Terminal::Terminal()
 {
+    //signal(SIGINT, intHandler);
     cout << "Start session" << endl << "> ";
     used_commands.current= 0;
     used_commands.commands.push_back("");
@@ -36,19 +45,24 @@ int Terminal::shell() {
             else
                 used_commands.commands[used_commands.current] = s;
             //used_commands.commands[used_commands.current] = s;
+            s = one_side + two_side;
+            err = parse_string();
+            if (err < 0)
+            {
+                cout  << "Error";
+                //return -1;
+            }
+            if (err == 5)
+            {
+                cout << endl << "End of a session\n";
+                return 0;
+            }
 
-            err = parse_string(s);
             s.clear();
             one_side.clear();
             two_side.clear();
             used_commands.x = 0;
-            cout << "\r> ";
-            if (err == 5)
-                return 0;
-            if (err == -1) {
-                printf("Error\n");
-                return -1;
-            }
+            cout << "\n\r> ";
         }
         if (iscntrl(k))
         {
@@ -67,9 +81,65 @@ int Terminal::shell() {
 
 }
 
-int Terminal::parse_string(string s)
+int Terminal::parse_string(void)
 {
-    cout << endl << s << endl;
+
+    int flag = 0;
+    int err;
+    string arg;
+    struct command prob_comm;
+    prob_comm.num_of_args=0;
+
+    for (int i=0; i< (int)s.size(); i++) {
+        if (s[i] == ' ' && flag == 1)
+        {
+            prob_comm.num_of_args++;
+            prob_comm.args.push_back(arg);
+            arg.clear();
+            flag = 0;
+            continue;
+
+        }
+        if (s[i] == ' ')
+            flag = 0;
+        else
+            flag = 1;
+
+
+        if (flag == 1) {
+            arg.push_back(s[i]);
+        }
+    }
+    if (arg.size() != 0)
+    {
+        prob_comm.num_of_args++;
+        prob_comm.args.push_back(arg);
+        arg.clear();
+    }
+
+
+    //for (int i=0;i<prob_comm.num_of_args;i++)
+    //    cout << endl << prob_comm.args[i];
+    //Code for checking command
+    err = check_command(prob_comm);
+    switch (err) {
+        case -1:
+            printf("No such command\n");
+               return -1;
+        case -2:
+            printf("Invalid arguments\n");
+            return -2;
+        case -3:
+            printf("Too much arguments\n");
+            return -3;
+        case -4:
+            printf("Not enough arguments\n");
+            return -4;
+        case 0:
+            return 0;
+        case 5:
+            return 5;
+    }
     return 0;
 }
 

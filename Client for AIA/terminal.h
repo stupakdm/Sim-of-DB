@@ -1,8 +1,9 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
-#include <string>
-#include <cstring>
-#include <vector>
+//#include <structures.h>
+#include <exec_commands.h>
+/*#include <cstring>
+#include <structures.h>
 #include <sys/time.h>
 #include <ctype.h>
 #include "string.h"
@@ -14,10 +15,10 @@
 #include <fcntl.h>
 #include "termios.h"
 #include "unistd.h"
-#include <iostream>
+#include <iostream>*/
 using namespace std;
 
-struct command {
+/*struct command {
     int num_of_args;
     vector<string> args;
 };
@@ -26,9 +27,10 @@ struct used_comm {
     int current;
     int x;
      vector<string> commands;
-};
+};*/
 
-class Terminal{
+class Terminal : public Exec_commands//, public Connection
+{
 private:
     struct used_comm used_commands;
     //vector<string> used_commands;
@@ -36,7 +38,7 @@ private:
     command comm;
     string s;
     string one_side, two_side;
-    int parse_string(string s);
+    int parse_string(void);
 
     int parse_symb(int symb);
 
