@@ -2,6 +2,9 @@
 
 using namespace std;
 
+//void quicksort(vector<struct user>& s_arr, int first, int last);
+
+//int binary_search(vector<struct user> s_arr, string login);
 
 Server::Server(int num_of_clients) {
         //Создаётся неименованный сокет(то есть без ip, порта)
@@ -140,9 +143,18 @@ int Server::create_new_user(int server)
         recv(server, buffer, bufsize, 0);
         string name = buffer;
         name = name.substr(0, name.size()-1);
-        cout <<name;
-        int i =0;
-        while (i<(int)users.size()){
+        cout <<name;                //Изменить на бинарный поиск
+        int place = binary_search(users, name);
+        while (place != -1)
+        {
+            send(server, msg_name2, strlen(msg_name2), 0);
+            memset(buffer, 0, bufsize);
+            recv(server, buffer, bufsize, 0);
+            name = buffer;
+            name = name.substr(0, name.size()-1);
+            place = binary_search(users, name);
+        }
+        /*while (i<(int)users.size()){
             cout << users[i].login;
 
             while (name == users[i].login) {
@@ -155,7 +167,7 @@ int Server::create_new_user(int server)
             }
             i++;
 
-        }
+        }*/
 
         send(server, msg_password, strlen(msg_password), 0);
         memset(buffer, 0, bufsize);
@@ -211,9 +223,10 @@ int Server::create_new_user(int server)
             struct user client;
             client.login =  name;
             client.password = password;
+            client.active = true;
 
             users.push_back(client);
-
+            quicksort(users, 0, users.size()-1);
             send(server, msg_begin, strlen(msg_begin), 0);
             return 0;
         }
@@ -261,8 +274,36 @@ int Server::login_user(int server) {
         cout << buffer;
         string s = buffer;
         s = s.substr(0, s.size()-1);
-        cout << s;
-        for (int i =0; i<num_of_users;i++)
+        cout << s;                  //Изменить на бинарный поиск
+        int place = binary_search(users, s);
+        if (place == -1) {
+            send(server, msg_log_end, strlen(msg_log_end), 0);
+            close(server);
+            sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
+            return -1;
+        }
+        else
+        {
+            send(server, msg_pas1, strlen(msg_pas1),0);
+            memset(buffer, 0, bufsize);
+            recv(server, buffer, bufsize, 0);
+
+            s = string(buffer);
+            s = s.substr(0, s.size()-1);
+            if (s == users[place].password)
+            {
+                users[place].active = true;
+                send(server, msg_begin, strlen(msg_begin), 0);
+                return 0;
+            }
+            else {
+                send(server, msg_pas_end, strlen(msg_pas_end), 0);
+                close(server);
+                sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
+                return -1;
+            }
+        }
+        /*for (int i =0; i<num_of_users;i++)
         {
             if (s == users[i].login) {
                 send(server, msg_pas1, strlen(msg_pas1),0);
@@ -289,7 +330,7 @@ int Server::login_user(int server) {
                 sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
                 return -1;
             }
-        }
+        }*/
         send(server, msg_log_end, strlen(msg_log_end), 0);
         close(server);
         sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
@@ -348,13 +389,22 @@ int Server::read_users()
             else
             {
                 client.password = s.substr(find1, found);
+                client.active = false;
                 users.push_back(client);
                 j++;
             }
             i+=1;
         }
         cout << users.size() << endl;
+        quicksort(users, 0, users.size()-1);
+        //if (users[4].login > users[5].login)
+         //   cout << 'okay';
+
+        for (int i =0;i<(int)users.size();i++)
+        {
+            cout << users[i].login <<  endl;
+        }
+        //cout << users.size() << endl;
         myfile.close();
         return 0;
 }
-

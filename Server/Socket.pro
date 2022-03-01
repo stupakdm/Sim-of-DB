@@ -4,8 +4,11 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        algorithmfunctions.cpp \
         main.cpp \
         server.cpp
 
 HEADERS += \
-    server.h
+    algorithmfunctions.h \
+    server.h \
+    structures.h
