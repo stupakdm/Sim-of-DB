@@ -1,8 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <algorithmfunctions.h>
-#include <structures.h>
+#include "algorithmfunctions.h"
+#include "structures.h"
 using namespace std;
 
 
@@ -12,7 +12,7 @@ private:
     int sockfd, servfd;
     vector<int> sock_serv;
 
-    int portNum = 1500;
+    int portNum = 8888;
     bool isExit = false;
     string ip;
 

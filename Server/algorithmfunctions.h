@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include "string.h"
 #include "termios.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -14,7 +15,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <string.h>
-#include <structures.h>
+#include "structures.h"
 
 
 
@@ -26,6 +27,10 @@ public:
     int binary_search(vector<struct user> s_arr, string login);
 
     void quicksort(vector<struct user>& s_arr, int first, int last);
+
+    string pass_coder(string st, int num);
+
+    string pass_decoder(string st, int num);
 };
 
 #endif // ALGORITHMFUNCTIONS_H

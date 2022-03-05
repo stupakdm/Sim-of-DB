@@ -1,9 +1,26 @@
-#include <algorithmfunctions.h>
+#include "algorithmfunctions.h"
 
 AlgorithmFunctions::AlgorithmFunctions()
 {
 }
 
+string AlgorithmFunctions::pass_coder(string st, int num) {
+    string crypted = "";
+
+    for (int i=0;i < (int)st.size(); i++)
+            crypted += st[i] ^ (char)num;
+    //cout << crypted << endl;
+    return crypted;
+}
+
+string AlgorithmFunctions::pass_decoder(string st, int num) {
+    string decrypted = "";
+
+    for (int i=0;i < (int)st.size(); i++)
+            decrypted += st[i] ^ (char)num;
+    //cout << decrypted << endl;
+    return decrypted;
+}
 
 int AlgorithmFunctions::binary_search(vector<struct user> s_arr, string login) {
     int l = 0;

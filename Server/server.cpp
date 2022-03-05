@@ -28,7 +28,8 @@ Server::Server(int num_of_clients) {
         cout << "Server Socket connection created..." << endl;
 
         server_addr.sin_family = AF_INET;
-        server_addr.sin_addr.s_addr = htonl(INADDR_ANY);//inet_addr(ip.c_str());//htonl(INADDR_ANY);
+        //server_addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("127.0.0.1");
+        server_addr.sin_addr.s_addr = htons(INADDR_ANY);//inet_addr(ip.c_str());//htonl(INADDR_ANY);
         server_addr.sin_port = htons(portNum);
 
         size = sizeof(server_addr);
@@ -222,7 +223,7 @@ int Server::create_new_user(int server)
 
             struct user client;
             client.login =  name;
-            client.password = password;
+            client.password = pass_coder(password, 2);;
             client.active = true;
 
             users.push_back(client);
@@ -290,7 +291,7 @@ int Server::login_user(int server) {
 
             s = string(buffer);
             s = s.substr(0, s.size()-1);
-            if (s == users[place].password)
+            if (s == pass_decoder(users[place].password, 2))
             {
                 users[place].active = true;
                 send(server, msg_begin, strlen(msg_begin), 0);
@@ -388,7 +389,7 @@ int Server::read_users()
             }
             else
             {
-                client.password = s.substr(find1, found);
+                client.password = pass_coder(s.substr(find1, found), 2);
                 client.active = false;
                 users.push_back(client);
                 j++;
