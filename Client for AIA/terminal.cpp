@@ -17,6 +17,9 @@ using namespace std;
 Terminal::Terminal()
 {
     //signal(SIGINT, intHandler);
+    network_communicate();
+
+
     cout << "Start session" << endl << "> ";
     used_commands.current= 0;
     used_commands.commands.push_back("");

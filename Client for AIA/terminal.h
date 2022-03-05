@@ -1,7 +1,8 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
 //#include <structures.h>
-#include <exec_commands.h>
+#include "exec_commands.h"
+#include "network_communicate.h"
 /*#include <cstring>
 #include <structures.h>
 #include <sys/time.h>
@@ -29,7 +30,7 @@ struct used_comm {
      vector<string> commands;
 };*/
 
-class Terminal : public Exec_commands//, public Connection
+class Terminal : public Exec_commands, public network_communicate
 {
 private:
     struct used_comm used_commands;
