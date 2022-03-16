@@ -15,6 +15,7 @@
 #include "structures.h"
 #include <iostream>
 #include <string>
+#include <algorithm>
 using namespace std;
 
 int getch(void);
@@ -28,6 +29,9 @@ public:
 
     int check_symbol(int symb);
 
+    void print(string s, string start_text, bool use);
+
+    int getch(void);
 };
 
 #endif // SPECIAL_FUNCTIONS_H

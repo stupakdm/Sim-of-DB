@@ -16,13 +16,14 @@
 #include "structures.h"
 #include <iostream>
 #include <string>
+#include <algorithm>
 
-class network_communicate : public special_functions
+class network_communicate : private special_functions
 {
     char buf[128];
     int bufsize = 128;
 
-    int portnum = 8888;
+    int portnum = 1500;
     int socketfd;
 
     struct sockaddr_in client_addr;
@@ -37,12 +38,17 @@ class network_communicate : public special_functions
 
     //}
 
+    string write_message(string begin, bool use);
+
+public:
+
     int create_user(void);
 
     int login_user(void);
 
-public:
-    network_communicate();
+    int init_talking(void);
+
+    int start_connection(void);
 
 
 };
