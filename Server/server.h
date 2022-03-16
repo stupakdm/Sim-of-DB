@@ -1,27 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
-#include <string>
-#include <vector>
-#include <fstream>
-#include <algorithm>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include "termios.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
-#include <string.h>
+
+#include "algorithmfunctions.h"
+#include "structures.h"
 using namespace std;
 
-struct user {
-    string login;
-    string password;
-};
 
-class Server
+class Server : public AlgorithmFunctions//, public Exec_commands
 {
 private:
     int sockfd, servfd;

@@ -1,154 +1,251 @@
 #include "terminal.h"
+#include <signal.h>
 using namespace std;
 
+//static volatile int keepRunning = 1;
 //struct termios orig_mode;
 
 //void disableRawMode();
 //void enableRawMode();
 
+//void intHandler(int dummy)
+//{
+//    keepRunning = 0;
+
+//}
+
 Terminal::Terminal()
 {
+    //signal(SIGINT, intHandler);
+    int err;
+    start_connection();
+
+
     cout << "Start session" << endl << "> ";
     used_commands.current= 0;
     used_commands.commands.push_back("");
+    used_commands.x = 0;
+    s = "";
+    one_side= "";
+    two_side = "";
 }
 
 int Terminal::shell() {
     int c, err;
     char k;
-    //enableRawMode();
-    //string s;
-    //used_commands.current= 0;
-    //cout << "Start session" << endl << "> ";
-    cout << used_commands.current << endl;
-    cout << (int)used_commands.commands.size() << endl;
+
     while (1){
-        //c = getchar();
 
         c = getch();
         k = (char)c;
         //cout << endl <<k << endl <<"> ";
         if (k == '\n') {
-            used_commands.commands[used_commands.current] = s;
-            used_commands.current++;
-            cout << used_commands.current << endl;
-            cout << (int)used_commands.commands.size() << endl;
-            err = parse_string(s);
-            s.clear();
-            cout << "\r> ";
-            if (err == 5)
-                return 0;
-            if (err == -1) {
-                printf("Error\n");
-                return -1;
+            if (used_commands.current == (int)used_commands.commands.size() - 1)
+            {
+                used_commands.commands[used_commands.current] = s;
+                used_commands.current++;
+                used_commands.commands.push_back("");
             }
+            else
+                used_commands.commands[used_commands.current] = s;
+            //used_commands.commands[used_commands.current] = s;
+            s = one_side + two_side;
+            err = parse_string();
+            if (err < 0)
+            {
+                cout  << "Error";
+                //return -1;
+            }
+            if (err == 5)
+            {
+                cout << endl << "End of a session\n";
+                return 0;
+            }
+
+            s.clear();
+            one_side.clear();
+            two_side.clear();
+            used_commands.x = 0;
+            cout << "\n\r> ";
         }
         if (iscntrl(k))
         {
             //printf("%d\n", k);
             err = parse_symb(c);
-            //cout << k;
-            //s.push_back(k);
         }
         else {
-            //printf("%d\n", k);
-            //printf("%c", k);
-            cout << k;
-            s.push_back(k);
+            //cout << k;
+
+            one_side.push_back(k);
+            print();
+
         }
-        /*err = parse_symb(k);
-        if (err == 0) { //0 - Обычный символ, 1 - служебный символ
-            s.push_back(k);
-
-        }*/
-        //cout << "< ";
-
     }
     return 0;
 
 }
 
-int Terminal::parse_string(string s)
+int Terminal::parse_string(void)
 {
-    cout << endl << s << endl;
+
+    int flag = 0;
+    int err;
+    string arg;
+    struct command prob_comm;
+    prob_comm.num_of_args=0;
+
+    for (int i=0; i< (int)s.size(); i++) {
+        if (s[i] == ' ' && flag == 1)
+        {
+            prob_comm.num_of_args++;
+            prob_comm.args.push_back(arg);
+            arg.clear();
+            flag = 0;
+            continue;
+
+        }
+        if (s[i] == ' ')
+            flag = 0;
+        else
+            flag = 1;
+
+
+        if (flag == 1) {
+            arg.push_back(s[i]);
+        }
+    }
+    if (arg.size() != 0)
+    {
+        prob_comm.num_of_args++;
+        prob_comm.args.push_back(arg);
+        arg.clear();
+    }
+
+
+    //for (int i=0;i<prob_comm.num_of_args;i++)
+    //    cout << endl << prob_comm.args[i];
+    //Code for checking command
+    err = check_command(prob_comm);
+    switch (err) {
+        case -1:
+            printf("No such command\n");
+               return -1;
+        case -2:
+            printf("Invalid arguments\n");
+            return -2;
+        case -3:
+            printf("Too much arguments\n");
+            return -3;
+        case -4:
+            printf("Not enough arguments\n");
+            return -4;
+        case 0:
+            return 0;
+        case 5:
+            return 5;
+    }
     return 0;
 }
 
 int Terminal::parse_symb(int symb) {
 
     int err;
-    //printf("%d\n", symb);
     if (symb == 9) {
             //check_special_words   //Функция ищет все совпадения по символам строки
-        cout << '\n' << "ls    help\nclear exit\n> " << s;
+        cout << '\n' << "ls    help\nclear exit\n> ";
+        print();
     }
     if (symb == 8 or symb == 127) {
-        if (s.size()!=0)
-            s = s.substr(0, s.size()-1);
+        if (one_side.size()!=0)
+            one_side = one_side.substr(0, one_side.size()-1);
+
+        //cout << endl << one_side << endl;
         //cout << s;
-        printf("\033[2K");
-        cout << "\r> " << s;
+        //printf("\033[2K");
+        print();
+        //used_commands.x--;
+        //cout << "\r> " << s;
     }
-    /*if (symb == 127) {
-        if (s.size()!=0)
-            s = s.substr(0, s.size()-1);
-        cout << "\r> " << s;
-    }*/
+
     if (symb == 27)
     {
-        //cout << "\r> " << s;
-        /*struct timeval begin, end;
-        gettimeofday(&begin, 0);
 
-        read(STDIN_FILENO, &symb, 1);
-        gettimeofday(&end, 0);
-        long double microseconds = end.tv_usec - begin.tv_usec;
-        if (microseconds < 0.000001) {
-            //cout << "\r> " << s;
-        }*/
         symb = getch();
         if (symb == 91) {
-            /*gettimeofday(&begin, 0);
 
-            read(STDIN_FILENO, &symb, 1);
-            gettimeofday(&end, 0);
-            long double microseconds = end.tv_usec - begin.tv_usec;
-            if (microseconds < 0.000001) {
-                //cout << "\r> " << s;
-            } // Доработать стрелочки*/
             symb = getch();
             switch (symb){
                 case 65:
-                    if (used_commands.current >= 0) {
-                        cout << used_commands.current << endl;
-                        cout << (int)used_commands.commands.size() << endl;
+                    if (used_commands.current != 0) {
+                        //cout << used_commands.current << endl;
+                        //cout << (int)used_commands.commands.size() << endl;
                         used_commands.current--;
-                        s = used_commands.commands[used_commands.current];
+                        //s = used_commands.commands[used_commands.current];
                         //used_commands.current--;
                     }
                     else {
-                        s.clear();
+                        used_commands.current = 0;
+                        //s.clear();
                     }
+                    s = used_commands.commands[used_commands.current];
                     printf("\033[2K");
                     cout << "\r> " << s;
+                    one_side = s;
+                    two_side = "";
+                    used_commands.x = 0;
                     break;
                 case 66:
-                    if (used_commands.current < (int)used_commands.commands.size()-1) {
+                    if (used_commands.current != (int)used_commands.commands.size()-1) {
                         used_commands.current++;
-                        s = used_commands.commands[used_commands.current];
+                        //s = used_commands.commands[used_commands.current];
                     }
                     else {
-                        //used_commands.current++;
-                        s.clear();
+                        used_commands.current = (int)used_commands.commands.size()-1;
+                        //s.clear();
                     }
+                    s = used_commands.commands[used_commands.current];
                     printf("\033[2K");
                     cout << "\r> " << s;
+                    one_side = s;
+                    two_side = "";
+                    used_commands.x = 0;
                     break;
                 case 67:
-                    cout << "right" << endl;
+                    if (used_commands.x != 0) {
+                        used_commands.x--;
+
+                        printf("\033[1C");
+                    }
+                    else {
+                        used_commands.x = 0;
+                    }
+                    if (s.size() != 0) {
+
+                        one_side = s.substr(0, s.size() - used_commands.x);
+                        if (used_commands.x != 0 )
+                            two_side = s.substr(s.size() - used_commands.x, used_commands.x);
+                        else
+                            two_side = "";
+                    }
                     break;
                 case 68:
-                    cout << "left" << endl;
+                    if (used_commands.x <= (int)s.size() -1) {
+                        used_commands.x++;
+                        printf("\033[1D");
+                    }
+                    else {
+                        if (s.size() != 0)
+                            used_commands.x = (int)s.size();
+                        else
+                            used_commands.x =0;
+                    }
+                    if (s.size() != 0) {
+                        one_side = s.substr(0, s.size() - used_commands.x);
+                        two_side = s.substr(s.size() - used_commands.x, used_commands.x);
+                        //cout << "checking:" << one_side << " and " << two_side;
+                    }
+                    //printf("\033[1D");
+                    //cout << "left" << endl;
                     break;
                 default:
                     parse_symb(symb);
@@ -168,27 +265,17 @@ int Terminal::parse_symb(int symb) {
     return 1;
 
 }
-/*
-void disableRawMode() {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_mode);
+
+
+
+void Terminal::print(void) {
+    printf("\033[2K");
+    cout << "\r> " << one_side << two_side;
+    if (used_commands.x != 0)
+        printf("\033[%dD", used_commands.x);
+    s = one_side+two_side;
 }
 
-void enableRawMode() {
-
-    tcgetattr(STDIN_FILENO, &orig_mode);
-    atexit(disableRawMode);
-
-    struct termios raw = orig_mode;
-    //raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-    //raw.c_oflag &= ~(OPOST);
-    //raw.c_cflag |= (CS8);
-    raw.c_lflag = ~(ECHO | ICANON);
-    //raw.c_cc[VMIN] = 0;
-    //raw.c_cc[VTIME] = 1;
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &raw);
-}
-*/
 int Terminal::getch(void) {
     struct termios oldattr, newattr;
     int ch, rc;
@@ -220,37 +307,3 @@ int Terminal::getch(void) {
     }
     return ch;
 }
-
-/*int Terminal::getch(void)
-{
-    struct termios oldattr, newattr;
-    int ch, rc;
-
-    rc = tcgetattr( STDIN_FILENO, &oldattr );
-    if (rc) {
-            perror("tcgetattr");
-            exit(1);
-
-    }
-
-    newattr = oldattr;
-    newattr.c_lflag &= ~(ICANON | ECHO);//~( ICANON | ECHOCTL);
-    rc = tcsetattr( STDIN_FILENO, TCSANOW, &newattr );
-    if (rc) {
-            perror("tcgetattr");
-            exit(1);
-
-    }
-    //fflush(stdout);
-    ch = getchar();
-
-    rc = tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
-    if (rc) {
-            perror("tcgetattr");
-            exit(1);
-
-    }
-
-    return ch;
-}
-*/
