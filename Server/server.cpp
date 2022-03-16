@@ -131,7 +131,7 @@ int Server::create_new_user(int server)
 {
         char msg_name1[] = "Please, enter your name: ";
         char msg_name2[] = "This name has already been used. Please, enter another: ";
-        char msg_password[] = "Plese, enter your password: ";
+        char msg_password[] = "Please, enter your password: ";
         char cnf_password[] = "Confirm your password: ";
         char not_confirmed[] = "Incorrect password.\nClose  connection\n";
         char msg_begin[] = "Begin session\n";
@@ -173,6 +173,7 @@ int Server::create_new_user(int server)
         send(server, msg_password, strlen(msg_password), 0);
         memset(buffer, 0, bufsize);
         recv(server, buffer, bufsize, 0);
+
         string password = buffer;
         password = password.substr(0, password.size()-1);
 

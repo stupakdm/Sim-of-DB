@@ -12,7 +12,7 @@ private:
     int sockfd, servfd;
     vector<int> sock_serv;
 
-    int portNum = 8888;
+    int portNum = 1500;
     bool isExit = false;
     string ip;
 
