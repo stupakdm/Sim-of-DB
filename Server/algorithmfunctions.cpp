@@ -45,6 +45,7 @@ int AlgorithmFunctions::binary_search(vector<struct user> s_arr, string login) {
             return -1;
     }
 }
+
 void AlgorithmFunctions::quicksort(vector<struct user>& s_arr, int first, int last) {
     int i = first, j = last;
     struct user x = s_arr[(first+last)/2];
@@ -65,4 +66,14 @@ void AlgorithmFunctions::quicksort(vector<struct user>& s_arr, int first, int la
     }
     if (first < j)
         quicksort(s_arr, first, j);
+}
+
+string AlgorithmFunctions::make_packet(string s,  char type)
+{
+    string packet;
+    packet = packet + type;
+    packet = packet +'s';
+    packet = packet + s;
+    packet = packet + 'e';
+    return packet;
 }

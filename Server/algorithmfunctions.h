@@ -31,6 +31,8 @@ public:
     string pass_coder(string st, int num);
 
     string pass_decoder(string st, int num);
+
+    string make_packet(string s,  char type);
 };
 
 #endif // ALGORITHMFUNCTIONS_H

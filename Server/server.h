@@ -18,12 +18,20 @@ private:
 
     int bufsize = 128;
     char buffer[128];
+    string packet;
 
     struct sockaddr_in server_addr;
     socklen_t size;
 
     vector<struct user> users;
     int num_of_users;
+
+    int send_msg(int client_fd, string message, char flag);
+
+    int recv_msg(int client_fd);
+
+    int end_connection(int fd);
+
 
 public:
     Server(int num_of_clients);

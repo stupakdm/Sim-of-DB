@@ -10,6 +10,7 @@ Server::Server(int num_of_clients) {
         //Создаётся неименованный сокет(то есть без ip, порта)
         int err;
         ip = "127.0.0.1";
+        pid_t pid1, pid2;
         err = read_users();
         if (err == -1) {
             cout << "Error while opening file" << endl;
@@ -46,27 +47,47 @@ Server::Server(int num_of_clients) {
         listen(sockfd, num_of_clients);
 
         //Сервер ждёт подключения и всвою очередь создается ещё один сокет подключения server
-        sock_serv.push_back(sockfd);
+        //sock_serv.push_back(sockfd);
 
         while (true) {
 
-            for (int i=0; i < (int)sock_serv.size(); i++){
-                if (sock_serv[i] == sockfd)
-                {
-                    servfd = accept(sockfd, (struct sockaddr*)&server_addr, &size);
-                    if (servfd<0)
-                    {
-                        cout << "Error on accepting..." << endl;
-                        exit(1);
-                    }
-                    sock_serv.push_back(servfd);
+            //for (int i=0; i < (int)sock_serv.size(); i++){
+            //    if (sock_serv[i] == sockfd)
+            //    {
+              servfd = accept(sockfd, (struct sockaddr*)&server_addr, &size);
+
+              if (servfd<0)
+              {
+                    cout << "Error on accepting..." << endl;
+                    exit(1);
+              }
+              //sock_serv.push_back(servfd);
+              pid1 = fork();
+              if (pid1 == -1) {
+                //for (int j =0; j < sock_serv.size(); j++)
+                //    close(sock_serv[j]);
+                close(sockfd);
+                close(servfd);
+                perror("fork");
+                exit(1);
+              }
+              if (pid1 == 0) {
+                    close(sockfd);
+                    //end_connection(sockfd);
                     err = init_connect(servfd);
-                }
-                else
-                {
+              }
+              else {
+                  close(servfd);
+                  //bzero((struct sockaddr*) &server_addr,  size);
+                  //end_connection(servfd);
+              }
+                    //err = init_connect(servfd);
+            //    }
+             //   else
+             //   {
                     //client_part all other clients who already on server and begin communication
-                }
-            }
+             //   }
+            //}
             //server = accept(sockfd, (struct sockaddr*)&server_addr, &size);
 
             //sock_serv.push_back(server);
@@ -86,13 +107,20 @@ Server::Server(int num_of_clients) {
 int Server::init_connect(int server) {
             char msg_welcome[] = "Welcome to AIA database\nEnter 'create' to create new account or 'login' to login: ";
             char msg_end[] = "Incorrect command\nEnd of a session\n";    //ALL IN ALL DB
-            send(server, msg_welcome, strlen(msg_welcome), 0);
-            memset(buffer, 0, bufsize);
-            recv(server, buffer, bufsize, 0);
+            //send(server, msg_welcome, strlen(msg_welcome), 0);
+            send_msg(server, msg_welcome, '1');
+            //memset(buffer, 0, bufsize);
+            if (recv_msg(server) < 0) {
+                end_connection(server);
+                return -1;
+            }
 
+            //recv(server, buffer, bufsize, 0);
+            //cout << buffer;
             //cout << buffer << endl;;
             string s = string(buffer);
             cout << s << endl;
+            //s = s.substr(2, s.size()-3);
             s = s.substr(0, s.size()-1);
             cout << s << endl;
 
@@ -105,9 +133,11 @@ int Server::init_connect(int server) {
                 return login_user(server);
             }
             else {
-                send(server, msg_end, strlen(msg_end), 0);
-                close(server);
-                sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
+                send_msg(server, msg_end, '-');
+                //send(server, msg_end, strlen(msg_end), 0);
+                end_connection(server);
+                //close(server);
+                //sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
             }
 
             return 0;
@@ -139,19 +169,31 @@ int Server::create_new_user(int server)
 
         //int rc;
 
-        send(server, msg_name1, strlen(msg_name1), 0);
-        memset(buffer, 0, bufsize);
-        recv(server, buffer, bufsize, 0);
+        send_msg(server, msg_name1, '1');
+        if (recv_msg(server) < 0) {
+            end_connection(server);
+            return -1;
+        }
+        //send(server, msg_name1, strlen(msg_name1), 0);
+        //memset(buffer, 0, bufsize);
+        //recv(server, buffer, bufsize, 0);
         string name = buffer;
+        //name = name.substr(2, name.size()-3);
         name = name.substr(0, name.size()-1);
-        cout <<name;                //Изменить на бинарный поиск
+        cout << name;                //Изменить на бинарный поиск
         int place = binary_search(users, name);
         while (place != -1)
         {
-            send(server, msg_name2, strlen(msg_name2), 0);
-            memset(buffer, 0, bufsize);
-            recv(server, buffer, bufsize, 0);
+            send_msg(server, msg_name2, '1');
+            if (recv_msg(server) < 0) {
+                end_connection(server);
+                return -1;
+            }
+            //send(server, msg_name2, strlen(msg_name2), 0);
+            //memset(buffer, 0, bufsize);
+            //recv(server, buffer, bufsize, 0);
             name = buffer;
+            //name = name.substr(2, name.size()-3);
             name = name.substr(0, name.size()-1);
             place = binary_search(users, name);
         }
@@ -170,17 +212,30 @@ int Server::create_new_user(int server)
 
         }*/
 
-        send(server, msg_password, strlen(msg_password), 0);
-        memset(buffer, 0, bufsize);
-        recv(server, buffer, bufsize, 0);
+        send_msg(server, msg_password, '1');
+
+        if (recv_msg(server) < 0) {
+            end_connection(server);
+            return -1;
+        }
+        //send(server, msg_password, strlen(msg_password), 0);
+        //memset(buffer, 0, bufsize);
+        //recv(server, buffer, bufsize, 0);
 
         string password = buffer;
+        //password = password.substr(2, password.size()-3);
         password = password.substr(0, password.size()-1);
 
-        send(server, cnf_password, strlen(cnf_password), 0);
-        memset(buffer, 0, bufsize);
-        recv(server, buffer, bufsize, 0);
+        send_msg(server, cnf_password, '1');
+        if (recv_msg(server) < 0) {
+            end_connection(server);
+            return -1;
+        }
+        //send(server, cnf_password, strlen(cnf_password), 0);
+        //memset(buffer, 0, bufsize);
+        //recv(server, buffer, bufsize, 0);
         string confirm = buffer;
+        //confirm = confirm.substr(2, confirm.size()-3);
         confirm = confirm.substr(0, confirm.size()-1);
 
         string st;
@@ -229,13 +284,16 @@ int Server::create_new_user(int server)
 
             users.push_back(client);
             quicksort(users, 0, users.size()-1);
-            send(server, msg_begin, strlen(msg_begin), 0);
+            send_msg(server, msg_begin, '1');
+            //send(server, msg_begin, strlen(msg_begin), 0);
             return 0;
         }
         else {
-            send(server, not_confirmed, strlen(not_confirmed), 0);
-            close(server);
-            sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
+            send_msg(server, not_confirmed, '-');
+            //send(server, not_confirmed, strlen(not_confirmed), 0);
+            end_connection(server);
+            //close(server);
+            //sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
             return -1;
         }
         /*  только в клиенте у себя высталяется такой мод
@@ -269,39 +327,58 @@ int Server::login_user(int server) {
         char msg_pas2[] = "Incorrect password\nEnter password: ";
 
         char msg_begin[] = "Begin session\n";
-        send(server, msg_log1, strlen(msg_log1), 0);
-        memset(buffer, 0, bufsize);
-        recv(server, buffer, bufsize, 0);
+        send_msg(server, msg_log1, '1');
+        if (recv_msg(server) < 0) {
+            end_connection(server);
+            return -1;
+        }
+        //send(server, msg_log1, strlen(msg_log1), 0);
+        //memset(buffer, 0, bufsize);
+        //recv(server, buffer, bufsize, 0);
 
-        cout << buffer;
+        //cout << buffer;
         string s = buffer;
+
+        //s = s.substr(2, s.size()-3);
         s = s.substr(0, s.size()-1);
-        cout << s;                  //Изменить на бинарный поиск
+        cout << "login: " <<  s << endl;                  //Изменить на бинарный поиск
         int place = binary_search(users, s);
         if (place == -1) {
-            send(server, msg_log_end, strlen(msg_log_end), 0);
-            close(server);
-            sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
+            send_msg(server, msg_log_end, '-');
+            //send(server, msg_log_end, strlen(msg_log_end), 0);
+            end_connection(server);
+            //close(server);
+            //sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
             return -1;
         }
         else
         {
-            send(server, msg_pas1, strlen(msg_pas1),0);
-            memset(buffer, 0, bufsize);
-            recv(server, buffer, bufsize, 0);
+            send_msg(server, msg_pas1,'1');
+            if (recv_msg(server) < 0) {
+                end_connection(server);
+                return -1;
+            }
+            //send(server, msg_pas1, strlen(msg_pas1),0);
+            //memset(buffer, 0, bufsize);
+            //recv(server, buffer, bufsize, 0);
 
             s = string(buffer);
+            //s = s.substr(2, s.size()-3);
             s = s.substr(0, s.size()-1);
+            cout << "password: " << s << endl;
             if (s == pass_decoder(users[place].password, 2))
             {
                 users[place].active = true;
-                send(server, msg_begin, strlen(msg_begin), 0);
+                send_msg(server, msg_begin, '1');
+                //send(server, msg_begin, strlen(msg_begin), 0);
                 return 0;
             }
             else {
-                send(server, msg_pas_end, strlen(msg_pas_end), 0);
-                close(server);
-                sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
+                send_msg(server, msg_pas_end, '-');
+                //send(server, msg_pas_end, strlen(msg_pas_end), 0);
+                end_connection(server);
+                //close(server);
+                //sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
                 return -1;
             }
         }
@@ -333,11 +410,60 @@ int Server::login_user(int server) {
                 return -1;
             }
         }*/
-        send(server, msg_log_end, strlen(msg_log_end), 0);
-        close(server);
-        sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
+        send_msg(server, msg_log_end, '-');
+        //send(server, msg_log_end, strlen(msg_log_end), 0);
+        end_connection(server);
+        //close(server);
+        //sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), server), sock_serv.end());
         return -1;
 }
+
+int Server::send_msg(int client_fd, string message, char flag)
+{
+    packet = make_packet(message, flag);
+    memset(buffer,0,bufsize);
+    memcpy(buffer, packet.c_str(), packet.size());
+    send(client_fd, buffer, bufsize, 0);
+
+}
+
+int Server::recv_msg(int client_fd)
+{
+    memset(buffer,0,bufsize);
+    recv(client_fd, buffer, bufsize, 0);
+    cout << buffer;
+    string mess = string(buffer);
+    if (mess.size() < 2){
+        return -1;
+    }
+    char symb = mess[0];
+    mess = mess.substr(2, mess.size()-3);
+    switch (symb)   //Доделать
+    {
+        case '1':
+            //mess = mess.substr(2, mess.size()-3);
+            cout << mess;
+            memset(buffer, 0 ,bufsize);
+            memcpy(buffer, mess.c_str(), mess.size());
+            return 0;
+        case '-':
+            return -1;
+        default:
+            return -1;
+    }
+    //mess = mess.substr(2, mess.size()-3);
+    cout << mess;
+    return 0;
+}
+
+int Server::end_connection(int fd)
+{
+    send_msg(fd, "Bye", '-');
+    close(fd);
+    //sock_serv.erase(remove(sock_serv.begin(), sock_serv.end(), fd), sock_serv.end());
+}
+
+
 
 int Server::read_users()
 {
