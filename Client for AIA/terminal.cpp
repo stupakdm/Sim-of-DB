@@ -8,17 +8,22 @@ using namespace std;
 //void disableRawMode();
 //void enableRawMode();
 
-//void intHandler(int dummy)
-//{
-//    keepRunning = 0;
+void intHandler(int dummy)
+{
+    cout << "\nExit" << endl;
+    exit(1);
 
-//}
+}
 
 Terminal::Terminal()
 {
-    //signal(SIGINT, intHandler);
+    //ПЕРЕДЕЛАТЬ
+    signal(SIGINT, intHandler);
     int err;
-    start_connection();
+
+    if (communication.start_connection() < 0)
+        exit(1);
+    //communication.socketfd;
 
 
     cout << "Start session" << endl << "> ";

@@ -24,15 +24,13 @@ class network_communicate : private special_functions
     int bufsize = 128;
 
     int portnum = 1500;
-    int socketfd;
 
     struct sockaddr_in client_addr;
     socklen_t size_client;
-
+    string packet;
     char *ip_add = "127.0.0.1";
     bool connectfl = false;
 
-    void intHandler(int dummy);
     //{
     //    keepRunning = 0;
 
@@ -40,7 +38,14 @@ class network_communicate : private special_functions
 
     string write_message(string begin, bool use);
 
+    int send_msg(string message, char flag);
+
+    int recv_msg(void);
+
 public:
+    int socketfd;
+    //static void intHandler(int dummy);
+
 
     int create_user(void);
 

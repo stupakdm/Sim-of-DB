@@ -39,6 +39,7 @@ private:
     command comm;
     string s;
     string one_side, two_side;
+    network_communicate communication;
     int parse_string(void);
 
     int parse_symb(int symb);

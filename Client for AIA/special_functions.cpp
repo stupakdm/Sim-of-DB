@@ -81,6 +81,16 @@ int special_functions::check_symbol(int symb) {
 
 }
 
+string special_functions::make_packet(string s,  char type)
+{
+    string packet;
+    packet = packet + type;
+    packet = packet +'s';
+    packet = packet + s;
+    packet = packet + 'e';
+    return packet;
+}
+
 void special_functions::print(string s, string start_text, bool use) {
     printf("\033[2K");
     int n = count(start_text.begin(), start_text.end(), '\n');

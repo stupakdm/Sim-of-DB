@@ -27,6 +27,8 @@ class special_functions
 public:
     special_functions();
 
+    string make_packet(string s, char type);
+
     int check_symbol(int symb);
 
     void print(string s, string start_text, bool use);
